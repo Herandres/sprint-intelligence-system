@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sprint Intelligence · Dashboard Demo</title>
+<style>
+:root {
+  --red: #d42b2b;
+  --dark: #111827;
+  --gray: #6b7280;
+  --light: #f9fafb;
+  --border: #e5e7eb;
+  --green: #16a34a;
+  --yellow: #d97706;
+  --blue: #2563eb;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; background:#f0f0f0; color:var(--dark); font-size:13px; }
+.page { max-width:860px; margin:24px auto; background:white; box-shadow:0 8px 32px rgba(0,0,0,0.10); }
+
+.header { background:var(--dark); color:white; padding:20px 32px; display:flex; justify-content:space-between; align-items:center; }
+.logo { font-size:20px; font-weight:900; letter-spacing:-1px; }
+.logo em { color:var(--red); font-style:normal; }
+.header-meta { text-align:right; font-size:11px; opacity:0.5; line-height:1.6; }
+
+.hero { padding:24px 32px 16px; border-bottom:3px solid var(--red); }
+.sprint-num { font-size:40px; font-weight:900; line-height:1; color:var(--dark); }
+.sprint-sub { font-size:12px; color:var(--gray); margin-top:4px; }
+.status-pill { display:inline-flex; align-items:center; gap:8px; margin-top:14px; padding:8px 16px; border-radius:4px; font-size:12px; font-weight:600; border-left:4px solid var(--red); background:var(--light); }
+.status-dot { width:9px; height:9px; border-radius:50%; flex-shrink:0; }
+
+.section-divider { background:var(--dark); color:white; padding:8px 32px; font-size:10px; text-transform:uppercase; letter-spacing:1.5px; font-weight:700; }
+.section-divider em { color:var(--red); font-style:normal; }
+
+.kpi-strip { display:grid; grid-template-columns:repeat(5,1fr); gap:1px; background:var(--border); border-top:1px solid var(--border); border-bottom:1px solid var(--border); }
+.kpi-card { background:white; padding:16px 12px; text-align:center; }
+.kpi-val { font-size:28px; font-weight:900; line-height:1; }
+.kpi-lbl { font-size:9px; text-transform:uppercase; letter-spacing:0.8px; color:var(--gray); margin-top:4px; }
+.kpi-card.k-green .kpi-val { color:var(--green); }
+.kpi-card.k-red .kpi-val { color:var(--red); }
+.kpi-card.k-yellow .kpi-val { color:var(--yellow); }
+.kpi-card.k-dark .kpi-val { color:var(--dark); }
+
+.metrics-row { display:grid; grid-template-columns:1fr 1fr; gap:16px; padding:20px 32px; border-bottom:1px solid var(--border); }
+.metric-box { background:var(--light); border-radius:6px; padding:14px 16px; }
+.metric-title { font-size:10px; text-transform:uppercase; letter-spacing:0.8px; color:var(--gray); margin-bottom:6px; }
+.metric-big { font-size:26px; font-weight:900; }
+.metric-sub { font-size:11px; color:var(--gray); margin-top:3px; }
+
+.section { padding:20px 32px; border-bottom:1px solid var(--border); }
+.sec-title { font-size:10px; text-transform:uppercase; letter-spacing:1px; font-weight:700; color:var(--gray); margin-bottom:14px; }
+
+.person-row { display:grid; grid-template-columns:160px 36px 1fr 52px; gap:10px; align-items:center; padding:8px 0; border-bottom:1px solid var(--border); }
+.person-row:last-child { border:none; }
+.person-name { font-size:12px; font-weight:600; }
+.person-total { font-size:13px; font-weight:800; text-align:right; }
+.stacked { height:8px; background:var(--border); border-radius:4px; overflow:hidden; display:flex; }
+.s-comp { background:var(--green); }
+.s-prog { background:var(--yellow); }
+.s-venc { background:var(--red); }
+.s-pend { background:#d1d5db; }
+.person-pct { font-size:11px; color:var(--gray); text-align:right; }
+.bar-legend { display:flex; gap:14px; margin-top:10px; font-size:10px; color:var(--gray); }
+.bar-legend span { display:flex; align-items:center; gap:4px; }
+.leg-dot { width:8px; height:8px; border-radius:2px; }
+.th-row { font-size:9px; text-transform:uppercase; letter-spacing:0.5px; color:var(--gray); }
+
+.sla-item { display:flex; justify-content:space-between; align-items:center; padding:9px 0; border-bottom:1px solid var(--border); }
+.sla-item:last-child { border:none; }
+.sla-client { font-weight:700; font-size:13px; }
+.sla-resp { font-size:11px; color:var(--gray); margin-top:2px; }
+.sla-badge { background:var(--red); color:white; padding:3px 10px; border-radius:12px; font-size:11px; font-weight:700; white-space:nowrap; }
+
+.hero-item { display:inline-flex; align-items:center; gap:8px; background:var(--light); border-radius:20px; padding:6px 14px; margin:4px; font-size:12px; font-weight:600; }
+
+.rec-item { display:grid; grid-template-columns:30px 1fr auto; gap:12px; align-items:start; padding:12px 0; border-bottom:1px solid var(--border); }
+.rec-item:last-child { border:none; }
+.rec-n { width:28px; height:28px; background:var(--red); color:white; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:12px; flex-shrink:0; }
+.rec-dato { font-weight:700; font-size:12px; margin-bottom:3px; }
+.rec-impacto { font-size:11px; color:var(--gray); }
+.rec-accion { background:var(--dark); color:white; padding:4px 10px; border-radius:4px; font-size:10px; font-weight:600; white-space:nowrap; align-self:center; }
+
+.insight { background:var(--light); border-left:3px solid var(--yellow); padding:12px 16px; border-radius:0 6px 6px 0; margin-top:12px; font-size:12px; }
+.insight strong { color:var(--yellow); font-size:10px; text-transform:uppercase; letter-spacing:0.5px; display:block; margin-bottom:4px; }
+
+.latam-table { width:100%; border-collapse:collapse; font-size:11px; }
+.latam-table th { font-size:9px; text-transform:uppercase; letter-spacing:0.8px; color:var(--gray); padding:6px 8px; border-bottom:2px solid var(--border); text-align:left; }
+.latam-table td { padding:8px; border-bottom:1px solid var(--border); vertical-align:top; }
+.latam-table tr:last-child td { border:none; }
+.latam-table tr:hover td { background:var(--light); }
+.latam-ok { color:var(--green); font-weight:700; }
+.latam-venc { color:var(--red); font-weight:700; }
+.latam-resp { color:var(--gray); font-size:10px; }
+
+.footer { background:var(--light); padding:14px 32px; display:flex; justify-content:space-between; align-items:center; font-size:10px; color:var(--gray); border-top:1px solid var(--border); }
+
+.demo-note { background:#1e3a5f; color:#93c5fd; padding:14px 32px; font-size:11px; border-top:2px solid var(--red); }
+.demo-note strong { color:#e0f2fe; }
+</style>
+</head>
+<body>
+<div class="page">
+
+<!-- HEADER -->
+<div class="header">
+  <div class="logo">sprint<em>·</em>intel</div>
+  <div class="header-meta">
+    Sprint Intelligence Report<br>
+    ClickUp · Real-time data · Demo · Day 10 of 14
+  </div>
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="sprint-num">Sprint 123</div>
+  <div class="sprint-sub">09/06/2026 → 22/06/2026 · Day 10 of 14 · Team Tech + Team LATAM</div>
+  <div class="status-pill">
+    <div class="status-dot" style="background:var(--red)"></div>
+    Team Tech in RED with rhythm 0.50x · Miguel Torres: 0 completed, 13 overdue · urgent intervention in two projects
+  </div>
+</div>
+
+<!-- TEAM TECH -->
+<div class="section-divider">Team <em>Tech</em> · Sprint 123</div>
+
+<div class="kpi-strip">
+  <div class="kpi-card k-dark"><div class="kpi-val">123</div><div class="kpi-lbl">Total tasks</div></div>
+  <div class="kpi-card k-green"><div class="kpi-val">44</div><div class="kpi-lbl">Completed</div></div>
+  <div class="kpi-card k-red"><div class="kpi-val">27</div><div class="kpi-lbl">Overdue</div></div>
+  <div class="kpi-card k-yellow"><div class="kpi-val">17</div><div class="kpi-lbl">In progress</div></div>
+  <div class="kpi-card k-dark"><div class="kpi-val">35</div><div class="kpi-lbl">Not started</div></div>
+</div>
+
+<div class="metrics-row">
+  <div class="metric-box">
+    <div class="metric-title">Delivery Rhythm · Team Tech</div>
+    <div class="metric-big" style="color:#d42b2b">0.50x</div>
+    <div class="metric-sub">⬇ LAGGING · Day 10 / 14 · 35.77% completed</div>
+  </div>
+  <div class="metric-box">
+    <div class="metric-title">Sprint Health · Team Tech</div>
+    <div class="metric-big" style="color:#d42b2b">🔴 RED</div>
+    <div class="metric-sub">35.77% completed · 27 overdue (21.9% of total)</div>
+  </div>
+</div>
+
+<!-- WORKLOAD TEAM TECH -->
+<div class="section">
+  <div class="sec-title">Workload distribution — Team Tech</div>
+  <div class="person-row th-row">
+    <div>Person</div><div style="text-align:right">Total</div><div>Distribution</div><div style="text-align:right">% done</div>
+  </div>
+
+  <div class="person-row">
+    <div class="person-name">María González</div>
+    <div class="person-total">49</div>
+    <div class="stacked">
+      <div class="s-comp" style="width:59.2%"></div>
+      <div class="s-venc" style="width:20.4%"></div>
+      <div class="s-pend" style="width:20.4%"></div>
+    </div>
+    <div class="person-pct">59.18%</div>
+  </div>
+
+  <div class="person-row">
+    <div class="person-name">Andrés Romero</div>
+    <div class="person-total">20</div>
+    <div class="stacked">
+      <div class="s-comp" style="width:15%"></div>
+      <div class="s-prog" style="width:40%"></div>
+      <div class="s-pend" style="width:45%"></div>
+    </div>
+    <div class="person-pct">15.00%</div>
+  </div>
+
+  <div class="person-row">
+    <div class="person-name">Felipe Herrera</div>
+    <div class="person-total">12</div>
+    <div class="stacked">
+      <div class="s-pend" style="width:100%"></div>
+    </div>
+    <div class="person-pct">0.00%</div>
+  </div>
+
+  <div class="person-row">
+    <div class="person-name">Laura Vásquez</div>
+    <div class="person-total">12</div>
+    <div class="stacked">
+      <div class="s-comp" style="width:41.7%"></div>
+      <div class="s-prog" style="width:41.7%"></div>
+      <div class="s-pend" style="width:16.6%"></div>
+    </div>
+    <div class="person-pct">41.67%</div>
+  </div>
+
+  <div class="person-row">
+    <div class="person-name">Miguel Torres ⚠️</div>
+    <div class="person-total" style="color:var(--red)">16</div>
+    <div class="stacked">
+      <div class="s-venc" style="width:81.25%"></div>
+      <div class="s-pend" style="width:18.75%"></div>
+    </div>
+    <div class="person-pct" style="color:var(--red)">0.00%</div>
+  </div>
+
+  <div class="person-row">
+    <div class="person-name">Valentina Cruz</div>
+    <div class="person-total">8</div>
+    <div class="stacked">
+      <div class="s-prog" style="width:50%"></div>
+      <div class="s-venc" style="width:50%"></div>
+    </div>
+    <div class="person-pct">0.00%</div>
+  </div>
+
+  <div class="person-row">
+    <div class="person-name">Santiago Reyes</div>
+    <div class="person-total">3</div>
+    <div class="stacked">
+      <div class="s-comp" style="width:66.7%"></div>
+      <div class="s-pend" style="width:33.3%"></div>
+    </div>
+    <div class="person-pct">66.67%</div>
+  </div>
+
+  <div class="person-row">
+    <div class="person-name">Camila Torres ⭐</div>
+    <div class="person-total" style="color:var(--green)">5</div>
+    <div class="stacked">
+      <div class="s-comp" style="width:100%"></div>
+    </div>
+    <div class="person-pct" style="color:var(--green)">100.00%</div>
+  </div>
+
+  <div class="person-row">
+    <div class="person-name">Julio Mora</div>
+    <div class="person-total">2</div>
+    <div class="stacked">
+      <div class="s-comp" style="width:50%"></div>
+      <div class="s-venc" style="width:50%"></div>
+    </div>
+    <div class="person-pct">50.00%</div>
+  </div>
+
+  <div class="bar-legend">
+    <span><span class="leg-dot" style="background:var(--green)"></span>Completed</span>
+    <span><span class="leg-dot" style="background:var(--yellow)"></span>In progress</span>
+    <span><span class="leg-dot" style="background:var(--red)"></span>Overdue</span>
+    <span><span class="leg-dot" style="background:#d1d5db"></span>Not started</span>
+  </div>
+  <div class="insight"><strong>Load concentration</strong>María González + Andrés Romero hold 56.1% of total load (69/123 tasks). Within threshold — monitor in next sprint.</div>
+</div>
+
+<!-- SLA ALERTS TEAM TECH -->
+<div class="section">
+  <div class="sec-title">⚠ SLA Alerts — Team Tech</div>
+  <div class="sla-item">
+    <div>
+      <div class="sla-client">Client Alfa — IT Infrastructure</div>
+      <div class="sla-resp">María González (8) · Julio Mora (1) · AWS infrastructure + process tasks unresolved since 15/06</div>
+    </div>
+    <div class="sla-badge">9 overdue</div>
+  </div>
+  <div class="sla-item">
+    <div>
+      <div class="sla-client">Client Beta — DataPlatform (Snowflake)</div>
+      <div class="sla-resp">Miguel Torres (4) · Valentina Cruz (4) · María González (1) · Onboarding phase not started since 17/06</div>
+    </div>
+    <div class="sla-badge">9 overdue</div>
+  </div>
+  <div class="sla-item">
+    <div>
+      <div class="sla-client">AI Project (internal)</div>
+      <div class="sla-resp">Miguel Torres (9) · Development block not started since sprint day 1</div>
+    </div>
+    <div class="sla-badge">9 overdue</div>
+  </div>
+</div>
+
+<!-- HEROES TEAM TECH -->
+<div class="section">
+  <div class="sec-title">Sprint Heroes · Team Tech</div>
+  <div class="hero-item">🏆 Camila Torres · 5/5 completed · 0 overdue · Client Gamma</div>
+</div>
+
+<!-- TEAM LATAM -->
+<div class="section-divider">Team <em>LATAM</em> · Sprint 123</div>
+
+<div class="kpi-strip">
+  <div class="kpi-card k-dark"><div class="kpi-val">138</div><div class="kpi-lbl">Total tasks</div></div>
+  <div class="kpi-card k-green"><div class="kpi-val">61</div><div class="kpi-lbl">Completed</div></div>
+  <div class="kpi-card k-red"><div class="kpi-val">6</div><div class="kpi-lbl">Overdue</div></div>
+  <div class="kpi-card k-yellow"><div class="kpi-val">14</div><div class="kpi-lbl">In progress</div></div>
+  <div class="kpi-card k-dark"><div class="kpi-val">57</div><div class="kpi-lbl">Not started</div></div>
+</div>
+
+<div class="metrics-row">
+  <div class="metric-box">
+    <div class="metric-title">Delivery Rhythm · Team LATAM</div>
+    <div class="metric-big" style="color:#d97706">0.62x</div>
+    <div class="metric-sub">⚠️ AT RISK · Day 10 / 14 · 44.20% completed</div>
+  </div>
+  <div class="metric-box">
+    <div class="metric-title">Sprint Health · Team LATAM</div>
+    <div class="metric-big" style="color:#d97706">🟡 YELLOW</div>
+    <div class="metric-sub">44.20% completed · 6 overdue (4.35% of total)</div>
+  </div>
+</div>
+
+<!-- LATAM PROJECT TABLE -->
+<div class="section">
+  <div class="sec-title">Active projects — 12 lists with tasks in Sprint 123</div>
+  <table class="latam-table">
+    <tr>
+      <th>Project</th>
+      <th>Lead</th>
+      <th style="text-align:center">Tasks</th>
+      <th style="text-align:center">Done</th>
+      <th style="text-align:center">Over.</th>
+      <th>Overdue detail</th>
+    </tr>
+    <tr><td><strong>BioGroup S.A.</strong></td><td class="latam-resp">Roberto Pérez</td><td style="text-align:center">83</td><td style="text-align:center"><span class="latam-ok">23</span></td><td style="text-align:center"><span class="latam-venc">4</span></td><td class="latam-resp">Roberto × 4 (training #3, data ×2, views 16/06)</td></tr>
+    <tr><td><strong>InfoCorp Global</strong></td><td class="latam-resp">Laura Vásquez · Beatriz Molina · Santiago Reyes</td><td style="text-align:center">19</td><td style="text-align:center"><span class="latam-ok">6</span></td><td style="text-align:center"><span class="latam-venc">1</span></td><td class="latam-resp">Beatriz × 1 (TOBE flow, 11/06)</td></tr>
+    <tr><td><strong>Semperton S.A.S</strong></td><td class="latam-resp">Santiago Reyes · Patricia Silva · Camila Torres</td><td style="text-align:center">13</td><td style="text-align:center"><span class="latam-ok">9</span></td><td style="text-align:center"><span class="latam-ok">0</span></td><td class="latam-resp">✓</td></tr>
+    <tr><td><strong>BuildTech Global</strong></td><td class="latam-resp">Camila Torres</td><td style="text-align:center">7</td><td style="text-align:center"><span class="latam-ok">6</span></td><td style="text-align:center"><span class="latam-ok">0</span></td><td class="latam-resp">✓</td></tr>
+    <tr><td><strong>TicketGlobal</strong></td><td class="latam-resp">Vanessa Ortega · Santiago Reyes</td><td style="text-align:center">9</td><td style="text-align:center"><span class="latam-ok">6</span></td><td style="text-align:center"><span class="latam-ok">0</span></td><td class="latam-resp">✓</td></tr>
+    <tr><td><strong>FinCard Global</strong></td><td class="latam-resp">Patricia Silva · Felipe Mendoza</td><td style="text-align:center">9</td><td style="text-align:center"><span class="latam-ok">1</span></td><td style="text-align:center"><span class="latam-ok">0</span></td><td class="latam-resp">7 not started — pending kickoff</td></tr>
+    <tr><td><strong>PayHub Global</strong></td><td class="latam-resp">Patricia Silva</td><td style="text-align:center">3</td><td style="text-align:center"><span class="latam-ok">2</span></td><td style="text-align:center"><span class="latam-ok">0</span></td><td class="latam-resp">✓</td></tr>
+    <tr><td><strong>IndusTech Global</strong></td><td class="latam-resp">Beatriz Molina · Santiago Reyes</td><td style="text-align:center">5</td><td style="text-align:center"><span class="latam-ok">4</span></td><td style="text-align:center"><span class="latam-ok">0</span></td><td class="latam-resp">✓</td></tr>
+    <tr><td><strong>Metro Transit Global</strong></td><td class="latam-resp">Julio Mora · Camila Torres</td><td style="text-align:center">2</td><td style="text-align:center"><span class="latam-ok">1</span></td><td style="text-align:center"><span class="latam-ok">0</span></td><td class="latam-resp">✓</td></tr>
+    <tr><td><strong>LoyaltyPlus Global</strong></td><td class="latam-resp">Roberto Pérez</td><td style="text-align:center">5</td><td style="text-align:center"><span class="latam-ok">3</span></td><td style="text-align:center"><span class="latam-venc">1</span></td><td class="latam-resp">Roberto × 1 (Session #6, 17/06)</td></tr>
+    <tr><td><strong>PMI Research</strong></td><td class="latam-resp">Patricia Silva</td><td style="text-align:center">1</td><td style="text-align:center"><span class="latam-ok">1</span></td><td style="text-align:center"><span class="latam-ok">0</span></td><td class="latam-resp">✓</td></tr>
+    <tr><td><strong>BioGroup · OKRs</strong></td><td class="latam-resp">Camila Torres · Santiago Reyes</td><td style="text-align:center">1</td><td style="text-align:center">0</td><td style="text-align:center"><span class="latam-ok">0</span></td><td class="latam-resp">Closing session due 22/06</td></tr>
+  </table>
+</div>
+
+<!-- WORKLOAD LATAM -->
+<div class="section">
+  <div class="sec-title">Workload distribution — Team LATAM</div>
+  <div class="person-row th-row">
+    <div>Person</div><div style="text-align:right">Total</div><div>Distribution</div><div style="text-align:right">% done</div>
+  </div>
+
+  <div class="person-row">
+    <div class="person-name">Roberto Pérez ⚠️</div>
+    <div class="person-total" style="color:var(--yellow)">68</div>
+    <div class="stacked">
+      <div class="s-comp" style="width:38.2%"></div>
+      <div class="s-prog" style="width:5.9%"></div>
+      <div class="s-venc" style="width:7.4%"></div>
+      <div class="s-pend" style="width:48.5%"></div>
+    </div>
+    <div class="person-pct">38.24%</div>
+  </div>
+
+  <div class="person-row">
+    <div class="person-name">Santiago Reyes</div>
+    <div class="person-total">16</div>
+    <div class="stacked">
+      <div class="s-comp" style="width:43.75%"></div>
+      <div class="s-prog" style="width:25%"></div>
+      <div class="s-pend" style="width:31.25%"></div>
+    </div>
+    <div class="person-pct">43.75%</div>
+  </div>
+
+  <div class="person-row">
+    <div class="person-name">Patricia Silva</div>
+    <div class="person-total">14</div>
+    <div class="stacked">
+      <div class="s-comp" style="width:50%"></div>
+      <div class="s-pend" style="width:50%"></div>
+    </div>
+    <div class="person-pct">50.00%</div>
+  </div>
+
+  <div class="person-row">
+    <div class="person-name">Camila Torres</div>
+    <div class="person-total">13</div>
+    <div class="stacked">
+      <div class="s-comp" style="width:69.2%"></div>
+      <div class="s-prog" style="width:7.7%"></div>
+      <div class="s-pend" style="width:23.1%"></div>
+    </div>
+    <div class="person-pct">69.23%</div>
+  </div>
+
+  <div class="person-row">
+    <div class="person-name">Beatriz Molina</div>
+    <div class="person-total">10</div>
+    <div class="stacked">
+      <div class="s-comp" style="width:40%"></div>
+      <div class="s-venc" style="width:10%"></div>
+      <div class="s-pend" style="width:50%"></div>
+    </div>
+    <div class="person-pct">40.00%</div>
+  </div>
+
+  <div class="person-row">
+    <div class="person-name">Laura Vásquez</div>
+    <div class="person-total">10</div>
+    <div class="stacked">
+      <div class="s-comp" style="width:30%"></div>
+      <div class="s-prog" style="width:40%"></div>
+      <div class="s-pend" style="width:30%"></div>
+    </div>
+    <div class="person-pct">30.00%</div>
+  </div>
+
+  <div class="person-row">
+    <div class="person-name">Vanessa Ortega</div>
+    <div class="person-total">5</div>
+    <div class="stacked">
+      <div class="s-comp" style="width:80%"></div>
+      <div class="s-pend" style="width:20%"></div>
+    </div>
+    <div class="person-pct">80.00%</div>
+  </div>
+
+  <div class="bar-legend">
+    <span><span class="leg-dot" style="background:var(--green)"></span>Completed</span>
+    <span><span class="leg-dot" style="background:var(--yellow)"></span>In progress</span>
+    <span><span class="leg-dot" style="background:var(--red)"></span>Overdue</span>
+    <span><span class="leg-dot" style="background:#d1d5db"></span>Not started</span>
+  </div>
+  <div class="insight"><strong>⚠ Critical concentration — LATAM</strong>Roberto Pérez + Santiago Reyes hold 60.87% of load (84/138 tasks). Threshold exceeded — redistribute toward Beatriz Molina and Laura Vásquez where applicable for the next sprint.</div>
+</div>
+
+<!-- SLA ALERTS LATAM -->
+<div class="section">
+  <div class="sec-title">⚠ SLA Alerts — Team LATAM</div>
+  <div class="sla-item">
+    <div>
+      <div class="sla-client">BioGroup S.A.</div>
+      <div class="sla-resp">Roberto Pérez × 4 · Training session + data properties × 2 + views adjustment (16-17/06)</div>
+    </div>
+    <div class="sla-badge">4 overdue</div>
+  </div>
+  <div class="sla-item">
+    <div>
+      <div class="sla-client">InfoCorp Global</div>
+      <div class="sla-resp">Beatriz Molina × 1 · TOBE flow presentation overdue since 11/06 · possible client approval dependency</div>
+    </div>
+    <div class="sla-badge">1 overdue</div>
+  </div>
+</div>
+
+<!-- RECOMMENDATIONS -->
+<div class="section">
+  <div class="sec-title">Strategic recommendations</div>
+  <div class="rec-item">
+    <div class="rec-n">1</div>
+    <div>
+      <div class="rec-dato">Miguel Torres: 13 overdue, 0 completed — AI Project + DataPlatform at zero</div>
+      <div class="rec-impacto">Risk of non-delivery on two simultaneous projects · Review technical blockers and renegotiate scope · Owner: Team Tech Lead</div>
+    </div>
+    <div class="rec-accion">Action TODAY</div>
+  </div>
+  <div class="rec-item">
+    <div class="rec-n">2</div>
+    <div>
+      <div class="rec-dato">Roberto Pérez holds 49% of LATAM load (68 tasks) — rhythm 38%, 5 overdue, 33 not started</div>
+      <div class="rec-impacto">Massive carryover to next sprint almost certain · Redistribute training and data tasks to Beatriz Molina and Laura Vásquez · Owner: LATAM Lead</div>
+    </div>
+    <div class="rec-accion">Action TODAY</div>
+  </div>
+  <div class="rec-item">
+    <div class="rec-n">3</div>
+    <div>
+      <div class="rec-dato">Client Beta — DataPlatform: complete onboarding phase overdue — 9 tasks, 3 people, due 17/06</div>
+      <div class="rec-impacto">Project start at zero on day 10 of 14 · Without partial close this week the sprint is null for this client · Owner: Santiago Reyes / María González</div>
+    </div>
+    <div class="rec-accion">Action TODAY</div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <div><strong>Sprint Intelligence System</strong> · Real-time operational data · Sprint 123 · Day 10 of 14</div>
+  <div>Source: ClickUp · Generated 18/06/2026 · Bogotá</div>
+</div>
+
+<!-- DEMO NOTE -->
+<div class="demo-note">
+  <strong>📋 Demo note:</strong>
+  This is a sanitized demo of the Sprint Intelligence dashboard. Names and client identifiers have been replaced with generic equivalents.
+  Real production dashboards include actual team member names, client names, and live ClickUp data.
+  Generated by the <strong>sprint-intelligence-report</strong> skill activated with <code>/sprint-report</code> inside Claude.ai.
+</div>
+
+</div>
+</body>
+</html>
