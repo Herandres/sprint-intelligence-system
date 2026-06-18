@@ -18,8 +18,37 @@ At the start of each sprint, the system:
 
 ## Architecture
 
+The system operates in two modes depending on the environment:
+
+### Mode A — Claude.ai (production)
+
 ```
-Claude.ai (MCP) ─── ClickUp API
+User opens new conversation
+        │
+        ▼
+Project Instructions (prompt) loaded automatically
+        │
+        ▼  (sequential: team 1 → team 2 → ... → team 5)
+Agent detects active sprint → ClickUp MCP
+Agent retrieves all tasks → ClickUp MCP
+        │
+        ▼
+Agent calculates KPIs in reasoning context
+        │
+        ▼
+Intelligence Report presented in chat
+        │
+        ▼  (on demand — user types /sprint-report)
+sprint-intelligence-report skill
+        │
+        ▼
+HTML Artifact generated in Claude.ai → print to PDF
+```
+
+### Mode B — Claude Code CLI (reference / offline)
+
+```
+Claude Code (MCP) ─── ClickUp API
         │
         ▼  (sequential, 5 teams)
   Data retrieval + inline normalization
@@ -89,6 +118,29 @@ Claude.ai (MCP) ─── ClickUp API
   "early_warnings": ["3 tasks not started with due date in 2 days"]
 }
 ```
+
+---
+
+## Visual report skill
+
+The system includes a Claude.ai skill (`sprint-intelligence-report`) that generates a branded HTML Artifact directly in the conversation.
+
+**How it works:**
+
+1. The agent retrieves and calculates all KPIs (Mode A flow above)
+2. User types `/sprint-report` in the Claude.ai conversation
+3. The skill generates a standalone HTML dashboard as a Claude.ai Artifact
+4. User opens it in the browser — printable to PDF with one click
+
+**What the Artifact includes:**
+- Executive headline + sprint health badge (Green / Yellow / Red)
+- KPI summary cards per team
+- Overdue task breakdown by assignee and client
+- SLA alert list
+- Workload table with completion % per person
+- Recommendations and early warnings
+
+This means the full report — from raw ClickUp data to a shareable PDF — runs entirely within a single Claude.ai conversation, with no local environment required.
 
 ---
 
